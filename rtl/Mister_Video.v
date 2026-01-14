@@ -88,6 +88,7 @@ HSYNC_N,
 VSYNC_N,
 HBLANKING,
 VBLANKING,
+VBLANK_PRIME,
 
 // RAM / Buffer
 RAM_ADDRESS,
@@ -128,7 +129,8 @@ art
 );
 
 input               MASTER_CLK;
-input               PIX_CLK;
+output              PIX_CLK;
+reg                 PIX_CLK;
 input               RESET_N;
 
 output      [9:0]   COLOR;
@@ -138,6 +140,8 @@ reg                 HSYNC_N;
 output              VSYNC_N;
 output				HBLANKING;
 reg					HBLANKING;
+output				VBLANK_PRIME;
+reg					VBLANK_PRIME;
 output				VBLANKING;
 reg					VBLANKING;
 
@@ -169,7 +173,7 @@ input               PHASE;
 input               SWITCH;
 
 output      [10:0]  ROM_ADDRESS;
-input       [7:0]  ROM_DATA1;
+input       [7:0]   ROM_DATA1;
 output              HBORDER;
 output              VBORDER;
 output              HBORDER_INT;
@@ -237,7 +241,7 @@ wire    [8:0]       BUF_ADD_BASE;
 //reg   [353:0]       VSYNC_DELAY;
 //reg                 VBLANKING;
 //wire    [3:0]       SG_VLPR;
-reg     [139:0]     VSYNC_DELAY;
+//reg     [139:0]     VSYNC_DELAY;
 reg                 VBORDER;
 reg                 VSYNC_FLAG;
 reg                 HBORDER_DELAY;
@@ -1785,6 +1789,15 @@ HBlanking has to be 1 for border
 HBORDER   has to be 1 for main display
 HBlanking has to be 0 for main display
 ******************************************************************************/
+always @ (posedge MASTER_CLK)
+begin
+	reg	[1:0]	div;
+	PIX_CLK <= 1'b0;
+	div <= div + 1'b1;
+	if ((div == 2'd1) || (div == 2'd2))
+		PIX_CLK <= 1'b1;
+end
+
 always @ (negedge MASTER_CLK)
     if(PIX_CLK == 1'b0 && PIX_CLK_DELAY == 1'b1)
     begin
@@ -1820,6 +1833,10 @@ always @ (negedge MASTER_CLK)
         11'd724:                            // End of right border 720 + 44 - 1 (+ 64) start of back porch
         begin
             HBORDER <= 1'b0;                // 736 - 28
+			if (LINE == 9'd262)
+				VBLANK_PRIME <= 1'b0;
+			if (LINE == 9'd5)
+				VBLANK_PRIME <= 1'b1;
             PIXEL_COUNT <= 11'd725;
         end
 
@@ -1927,12 +1944,14 @@ assign SG6 = VLPR[3:2];
 * Generate clock for VSYNC_N by
 * Delaying VSYNC_FLAG by 137 pixels
 *************************************/
-assign VSYNC_N = VSYNC_DELAY[137];
-always @ (negedge MASTER_CLK)
-    if(PIX_CLK == 1'b0 && PIX_CLK_DELAY == 1'b1)
-    begin
-        VSYNC_DELAY <= {VSYNC_DELAY[138:0], VSYNC_FLAG};
-    end
+//assign VSYNC_N = VSYNC_DELAY[137];
+//always @ (negedge MASTER_CLK)
+//    if(PIX_CLK == 1'b0 && PIX_CLK_DELAY == 1'b1)
+//    begin
+//        VSYNC_DELAY <= {VSYNC_DELAY[138:0], VSYNC_FLAG};
+//    end
+
+assign VSYNC_N = VSYNC_FLAG;
 
 /*****************************************************************************
 * Keeps track of how many lines are in each row.

@@ -3807,7 +3807,7 @@ end
 * Video
 ******************************************************************************/
 
-assign PIX_CLK = CLK_14;
+//assign PIX_CLK = CLK_14;
 
 wire PIX_CLK_D;
 
@@ -3817,8 +3817,10 @@ wire PIX_CLK_D;
 // The VBOARDER is used as a VBLANK as is [inverted]
 reg		[3:0]    MISTER_HBLANK_D;
 
-assign 	HBLANK = MISTER_HBLANK_D[1];  // This is 2 clock delay on the ~HBORDER...
-assign	VBLANK = ~VBORDER;
+assign 	HBLANK = MISTER_HBLANK_D[2];  // This is 2 clock delay on the ~HBORDER...
+//assign	VBLANK = ~VBORDER;
+wire 	VBLANK_PRIME;
+assign	VBLANK = ~VBLANK_PRIME;
 
 assign	RED[3:0] = RED[7:4];
 assign	GREEN[3:0] = GREEN[7:4];
@@ -3888,7 +3890,6 @@ wire VBLANK_1;
 wire HBLANK_1;
 wire double, buff_bank;
 
-`ifndef CoCo3_Select_GIMEX_RAST
 // Video timing and modes
 COCO3VIDEO MISTER_COCOVID(
 // Clocks / RESET
@@ -3902,6 +3903,7 @@ COCO3VIDEO MISTER_COCOVID(
 	.VSYNC_N(V_SYNC_N),
 	.HBLANKING(HBLANK_1),
 	.VBLANKING(VBLANK_1),
+	.VBLANK_PRIME(VBLANK_PRIME),
 
 // RAM / Buffer
 	.RAM_ADDRESS(VIDEO_ADDRESS),
@@ -3953,73 +3955,6 @@ COCO3VIDEO MISTER_COCOVID(
 	.art(SWITCH[7:6])
 );
 
-`else
-
-wire	[9:0]	BUFF_ADD_temp;
-assign			BUFF_ADD = BUFF_ADD_temp[8:0];
-
-COCO3VIDEO_GIMEX MISTER_COCOVID(
-// Clocks / RESET
-	.PIX_CLK(PIX_CLK),			//14.32 MHz = 69.3 nS
-	.RESET_N(RESET_N),
-
-	.COLOR(COLOR),
-	.HSYNC_N(H_SYNC_N),
-	.VSYNC_N(V_SYNC_N),
-
-// RAM / Buffer
-	.BUFF_ADD_F(BUFF_ADD_temp),
-	.RAM_ADD(VIDEO_ADDRESS),
-	.RAM_DATA(BUFF_DATA),
-
-// Mode Selection
-	.COCO1(COCO1),
-	.V(V),
-	.BP(GRMODE),
-	.VERT(VERT),
-	.VID_CONT(VDG_CONTROL),
- 	.CSS(CSS),
-	.LPF(LPF),
-	.VERT_FIN_SCRL(VERT_FIN_SCRL),
-	.HLPR(HLPR),
-	.LPR(LPR),
-	.HRES(HRES),
-	.CRES(CRES),
-	.HVEN(HVEN),
-
-// Starting location
-	.SCRN_START_HSB(SCRN_START_HSB),		// 2 extra bits for 2MB screen start
-	.SCRN_START_MSB(SCRN_START_MSB),
-	.SCRN_START_LSB(SCRN_START_LSB),
-
-	.SWITCH(SWITCH[5]),
-
-	.BLINK(BLINK),
-
-	.ARTI(SWITCH[7:6]),
-	.PHASE(PHASE),
-	.HBORDER(HBORDER),
-	.VBORDER(VBORDER),
-
-//	Interrupts
-`ifdef CoCo3_Horz_INT_FIX
-	.HBORDER_INT(HBORDER_INT),
-`endif
-
-`ifdef CoCo3_Vert_INT_FIX
-	.VBORDER_INT(VBORDER_INT),
-`endif
-
-
-//	.DOUBLE(double),
-//	.BUFF_BANK(buff_bank),
-	.TURBO(1'b0),
-	.SDRate(1'b0),
-
-	.ROM_ADDRESS(font_adrs),
-	.ROM_DATA1(font_data)
-);
-`endif
 
 parameter SHDOW_FONT_LOCK_REG = 16'hfff0;
 parameter SHDOW_FONT_DATA_REG = 16'hfff1;
