@@ -125,13 +125,20 @@ HBORDER,
 VBORDER,
 HBORDER_INT,
 VBORDER_INT,
-art
+art,
+PIXEL_COUNT,
+LINE
 );
 
 input               MASTER_CLK;
 output              PIX_CLK;
 reg                 PIX_CLK;
 input               RESET_N;
+
+output		[10:0]   PIXEL_COUNT;
+reg		    [10:0]   PIXEL_COUNT;
+output      [9:0]   LINE;
+reg         [9:0]   LINE;
 
 output      [9:0]   COLOR;
 reg         [9:0]   COLOR;
@@ -184,10 +191,8 @@ reg                 VBORDER_INT;
 input		[1:0]	art;
 
 //reg                 HBLANKING;
-reg     [9:0]       LINE;
 reg     [3:0]       VLPR;
 //reg     [3:0]       COCO_VLPR;
-reg     [10:0]      PIXEL_COUNT;
 reg     [15:0]      CHAR_LATCH_0_TMP;
 reg     [15:0]      CHAR_LATCH_1_TMP;
 reg     [15:0]      CHAR_LATCH_2_TMP;
@@ -1508,22 +1513,41 @@ assign PIXEL_X =
 ({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101001)                                              ?   {6'h00,CHAR_LATCH_0[9:8]}:
 
 //4 Color 512/640 = 640/4 = 160
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00010101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00100101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00110101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01000101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01010101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01100101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01110101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10000101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10010101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10100101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10110101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11000101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11010101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11100101101)                                              ?   {6'h00,CHAR_LATCH_0[9:8]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101101)                                              ?   {6'h00,CHAR_LATCH_1[9:8]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00010101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00100101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00110101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01000101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01010101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01100101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01110101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10000101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10010101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10100101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10110101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11000101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11010101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11100101101)                                              ?   {6'h00,CHAR_LATCH_0[9:8]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101101)                                              ?   {6'h00,CHAR_LATCH_1[9:8]}:
+
+// Update by G. Becker on 4/18/26 to fix HSCREEN 4 mode (640 x 192) 4 color mode.
+
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000101101)                                            ?   {6'h00,CHAR_LATCH_0[7:6]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00010101101)                                            ?   {6'h00,CHAR_LATCH_0[5:4]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00100101101)                                            ?   {6'h00,CHAR_LATCH_0[3:2]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00110101101)                                            ?   {6'h00,CHAR_LATCH_0[1:0]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01000101101)                                            ?   {6'h00,CHAR_LATCH_0[15:14]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01010101101)                                            ?   {6'h00,CHAR_LATCH_0[13:12]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01100101101)                                            ?   {6'h00,CHAR_LATCH_0[11:10]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01110101101)                                            ?   {6'h00,CHAR_LATCH_0[9:8]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10000101101)                                            ?   {6'h00,CHAR_LATCH_1[7:6]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10010101101)                                            ?   {6'h00,CHAR_LATCH_1[5:4]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10100101101)                                            ?   {6'h00,CHAR_LATCH_1[3:2]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10110101101)                                            ?   {6'h00,CHAR_LATCH_1[1:0]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11000101101)                                            ?   {6'h00,CHAR_LATCH_1[15:14]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11010101101)                                            ?   {6'h00,CHAR_LATCH_1[13:12]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11100101101)                                            ?   {6'h00,CHAR_LATCH_1[11:10]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101101)                                            ?   {6'h00,CHAR_LATCH_1[9:8]}:
 
 //16 Color 32/40 = 40/2 = 20
 ({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000100010)                                              ?   {4'h0,CHAR_LATCH_0[7:4]}:

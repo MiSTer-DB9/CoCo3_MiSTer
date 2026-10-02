@@ -233,7 +233,7 @@ begin
 
 			st_2:
 			begin
-				if (timer[18] == 1'b1)	// 300ms time passed
+				if (timer[17] == 1'b1)	// 300ms time passed
 				begin
 					key_up_down <= RELEASE_KEY;
 					state <= st_3;
@@ -242,7 +242,7 @@ begin
 
 			st_3:
 			begin
-				if (timer[18] == 1'b0)	// 300ms time passed
+				if (timer[17] == 1'b0)	// 300ms time passed
 				begin
 					shift <= 1'b0;
 					timer_enable <= 1'b0;

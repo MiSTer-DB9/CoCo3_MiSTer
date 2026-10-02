@@ -1,3 +1,21 @@
+1.	Overlay support for the detection of no rom loading on power up AND misc
+    debugging. [done]
+2.	Fix video HSCREEN 4 mode which is used in some demos and rs-232 terminal
+	programs. [done]
+3.	Reworked sound output to faithfully emulate the analog muxing in the coco.
+	[done]
+4.	Routing RS-232 tx/rx lines to the SNAC port for initial serial debugging
+	of Fuji-Net interface. [done - untested]
+
+
+To Do...
+1.	Add Fuji-Net port.
+2.	Add Speech / Music cart
+3.	Fix Castle of Tharoggad 
+
+
+
+
 1.	Added support for cassette save.  To use: A) You have to have a file [anyname.cas]
 	which is larger than needed.  B) Select the file through the UI Menu 'Save 
 	Cassette'.  C)Set 'Cass Rwd=0 / Rec=1' to 1. D) Issue your 'CSAVE "NAME"'

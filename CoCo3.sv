@@ -241,7 +241,9 @@ localparam  CONF_STR = {
         "P2-, -= Debug Menu =-;",
         "P2-;",
         "P2F3,BIN,Load COCO Font;", 
-        "P2OG,Cart Interrupt Disabled,OFF,ON;",
+        "P2OG,Swap MiSTer Uart,RS CART,Default;",
+        "P2OU,Swap Uart to IO,RS IO,MiSTer;",
+        "P2OT,Display Debug,Off,On;",
         "-;",
         "ON,D-Pad Joystick emu,No,Yes;",
         "O6,Swap Joysticks,Off,On;",
@@ -270,7 +272,7 @@ localparam  CONF_STR = {
 //   0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789ABCDEFGHIJKLMNOPQRSTUV
 // 
 
-//   R  OOOO OOR OOOTOOOOOOROOOOOO    ooo  oo oo                             
+//   R  OOOO OOR OOOTOOOOOOROOOOOOOO  ooo  oo oo                             
 //F    FF            
 //S  SSSSSSS
 
@@ -486,9 +488,11 @@ wire [7:0] g;
 wire [7:0] b;
 
 wire easter_egg = status[10];
-wire	[31:0]	probe;
+wire	[6:0]	probe_o;
+wire	[6:0]	probe_i;
 
-assign USER_OUT[6:0] = probe[6:0];
+assign USER_OUT[6:0] = probe_o[6:0];
+assign probe_i[6:0] = USER_IN[6:0];
 
 wire [71:0]	Config_Data;
 
@@ -506,9 +510,9 @@ coco3fpga coco3 (
   // Reset
   .COCO_RESET_N((~reset & Programmed_RESET_N)),
 
-  .RED(r),
-  .GREEN(g),
-  .BLUE(b),
+  .RED_O(r),
+  .GREEN_O(g),
+  .BLUE_O(b),
 
   .EE_N(Programmed_EE),
   .PHASE(PHASE),
@@ -570,7 +574,8 @@ coco3fpga coco3 (
   .sd_buff_din(sd_buff_din),
   .sd_buff_wr(sd_buff_wr),
 
-  .PROBE(probe[31:0]),
+  .PROBE_O(probe_o),
+  .PROBE_I(probe_i),
   .clk_Q_out(clk_Q_out),
   .casdout( casdout),
   .cas_relay(cas_relay),
@@ -608,6 +613,7 @@ coco3fpga coco3 (
   .AUTO_MODE(Auto_Mode),
 
   .Config_Data(Config_Data),
+  .Display_Debug(display_debug),
   
   .UART_TXD(UART_TXD),
   .UART_RXD(UART_RXD),
@@ -633,7 +639,7 @@ wire AMW_ACK;
 wire [1:0] mpi = status[13:12] + 1'b1;
 //wire video=status[14];
 wire CASS_REW_RECORD=status[14];
-wire cartint=status[16];
+wire rs_swap=status[16];
 wire sg4v6 = status[21];
 
 wire PHASE = status[18];
@@ -643,7 +649,8 @@ wire coldboot = status[22];
 wire F_Turbo = status[24];
 wire [2:0]	Mem_Size = status[27:25];
 wire SWAP_M_J = status[28];
-
+wire display_debug = status[29];
+wire UART_INPUT = status[30];
 wire digitalJoy = status[23];
 reg	[2:0] mpi_d	= 2'b00;
 reg first_mpi_chg = 1'b0;
@@ -680,7 +687,7 @@ begin
 end
 
 //	Set bit 9 to swap serial ports...
-wire [9:0] switch = { 2'b10,art,sg4v6,cartint,CASS_REW_RECORD,mpi,1'b0};
+wire [9:0] switch = { 1'b0,UART_INPUT,art,sg4v6,rs_swap,CASS_REW_RECORD,mpi,1'b0};
 
 
 wire reset = RESET | status[0] | buttons[1];
