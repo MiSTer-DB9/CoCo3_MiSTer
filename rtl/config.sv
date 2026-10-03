@@ -101,7 +101,7 @@ localparam [7:0] FEATURE_8 = 8'h80;
 	`define CoCo3_disable_GART_in_GIMEX
 	`define Feat_6
 
-//	`set_feature(CoCo3_Select_GIMEX_RAST,Feat_7)			// Use GIMEX Rasterizer Engine
-//	`define CoCo3_Select_GIMEX_RAST
+//	`set_feature(,Feat_7)			// Open Feature
+//	`define New_Feature...
 //	`define Feat_7
 

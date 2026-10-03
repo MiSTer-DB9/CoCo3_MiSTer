@@ -5,7 +5,6 @@ set_global_assignment -name VERILOG_FILE rtl/PS2_Key/ps2_keyboard.v
 set_global_assignment -name MIF_FILE rtl/VDAC.mif
 set_global_assignment -name VERILOG_FILE rtl/VDAC.v
 set_global_assignment -name VERILOG_FILE rtl/Mister_Video.v
-set_global_assignment -name VERILOG_FILE rtl/Mister_Video_GIMEX.v
 set_global_assignment -name VERILOG_FILE rtl/cocokey.v
 set_global_assignment -name VERILOG_FILE rtl/UART_6551/uart_6551.v
 set_global_assignment -name VERILOG_FILE rtl/UART_6551/6551tx.v
@@ -36,4 +35,5 @@ set_global_assignment -name VERILOG_FILE rtl/EE_Cold_Bt.v
 set_global_assignment -name VHDL_FILE rtl/rom/coco_rom_32K.vhd
 set_global_assignment -name VHDL_FILE rtl/rom/coco_rom_8K.vhd
 set_global_assignment -name VHDL_FILE rtl/rom/coco_rom_16.vhd
+set_global_assignment -name VHDL_FILE rtl/OVO.vhd
 set_global_assignment -name SDC_FILE  rtl/CoCo3FPGA.sdc
