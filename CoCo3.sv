@@ -43,6 +43,8 @@ module emu
 	input  [11:0] HDMI_WIDTH,
 	input  [11:0] HDMI_HEIGHT,
 	output        HDMI_FREEZE,
+	output        HDMI_BLACKOUT,
+	output        HDMI_BOB_DEINT,
 
 `ifdef MISTER_FB
 	// Use framebuffer in DDRAM
@@ -183,7 +185,7 @@ assign USER_PP = USER_PP_DRIVE;
 wire         CLK_JOY = CLK_50M;                 // Assign clock between 40-50Mhz
 wire   [1:0] joy_type_raw    = status[127:126]; // 0=Off, 1=Saturn, 2=DB9MD, 3=DB15
 wire         joy_2p          = status[125];     // 2P core: UserIO Players selector
-wire         snac_active     = 1'b0;
+wire         snac_active     = status[30];      // Debug menu "Swap Uart to IO": RS-232 owns USER_IO
 wire         mt32_primary_active = 1'b0;
 wire   [1:0] joy_type        = snac_active ? 2'd0 : joy_type_raw;
 wire         joy_db9md_en    = (joy_type == 2'd2);
@@ -247,7 +249,7 @@ joydb joydb (
   .joy_raw         ( joy_raw_payload )
 );
 
-assign USER_OUT = USER_OUT_DRIVE;
+// USER_OUT is driven below, next to the upstream RS-232 probe export
 // [MiSTer-DB9 END]
 
 
@@ -259,6 +261,8 @@ assign LED_POWER = 0;
 
 assign VGA_SCALER = 0;
 assign HDMI_FREEZE = 0;
+assign HDMI_BLACKOUT = 0;
+assign HDMI_BOB_DEINT = 0;
 
 wire [1:0] ar = status[9:8];
 
@@ -316,7 +320,9 @@ localparam  CONF_STR = {
         "P2-, -= Debug Menu =-;",
         "P2-;",
         "P2F3,BIN,Load COCO Font;", 
-        "P2OG,Cart Interrupt Disabled,OFF,ON;",
+        "P2OG,Swap MiSTer Uart,RS CART,Default;",
+        "P2OU,Swap Uart to IO,RS IO,MiSTer;",
+        "P2OT,Display Debug,Off,On;",
         "-;",
         "ON,D-Pad Joystick emu,No,Yes;",
         "O6,Swap Joysticks,Off,On;",
@@ -350,7 +356,7 @@ localparam  CONF_STR = {
 //   0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789ABCDEFGHIJKLMNOPQRSTUV
 // 
 
-//   R  OOOO OOR OOOTOOOOOOROOOOOO    ooo  oo oo                             
+//   R  OOOO OOR OOOTOOOOOOROOOOOOOO  ooo  oo oo                             
 //F    FF            
 //S  SSSSSSS
 
@@ -585,12 +591,14 @@ wire [7:0] g;
 wire [7:0] b;
 
 wire easter_egg = status[10];
-wire	[31:0]	probe;
+wire	[6:0]	probe_o;
+wire	[6:0]	probe_i;
 
-// [MiSTer-DB9 BEGIN] - DB9/SNAC8 support: USER_OUT now driven by joydb wrapper;
-// upstream debug-probe export disabled (conflicts with DB9 controller on USER_IO).
-//assign USER_OUT[6:0] = probe[6:0];
+// [MiSTer-DB9 BEGIN] - DB9/SNAC8 support: upstream RS-232/debug probe owns USER_IO
+// only while "Swap Uart to IO" (status[30]) is set; the joydb wrapper drives it otherwise.
+assign USER_OUT = snac_active ? {1'b1, probe_o[6:0]} : USER_OUT_DRIVE;
 // [MiSTer-DB9 END]
+assign probe_i[6:0] = USER_IN[6:0];
 
 wire [71:0]	Config_Data;
 
@@ -608,9 +616,9 @@ coco3fpga coco3 (
   // Reset
   .COCO_RESET_N((~reset & Programmed_RESET_N)),
 
-  .RED(r),
-  .GREEN(g),
-  .BLUE(b),
+  .RED_O(r),
+  .GREEN_O(g),
+  .BLUE_O(b),
 
   .EE_N(Programmed_EE),
   .PHASE(PHASE),
@@ -672,7 +680,8 @@ coco3fpga coco3 (
   .sd_buff_din(sd_buff_din),
   .sd_buff_wr(sd_buff_wr),
 
-  .PROBE(probe[31:0]),
+  .PROBE_O(probe_o),
+  .PROBE_I(probe_i),
   .clk_Q_out(clk_Q_out),
   .casdout( casdout),
   .cas_relay(cas_relay),
@@ -710,6 +719,7 @@ coco3fpga coco3 (
   .AUTO_MODE(Auto_Mode),
 
   .Config_Data(Config_Data),
+  .Display_Debug(display_debug),
   
   .UART_TXD(UART_TXD),
   .UART_RXD(UART_RXD),
@@ -735,7 +745,7 @@ wire AMW_ACK;
 wire [1:0] mpi = status[13:12] + 1'b1;
 //wire video=status[14];
 wire CASS_REW_RECORD=status[14];
-wire cartint=status[16];
+wire rs_swap=status[16];
 wire sg4v6 = status[21];
 
 wire PHASE = status[18];
@@ -745,7 +755,8 @@ wire coldboot = status[22];
 wire F_Turbo = status[24];
 wire [2:0]	Mem_Size = status[27:25];
 wire SWAP_M_J = status[28];
-
+wire display_debug = status[29];
+wire UART_INPUT = status[30];
 wire digitalJoy = status[23];
 reg	[2:0] mpi_d	= 2'b00;
 reg first_mpi_chg = 1'b0;
@@ -782,7 +793,7 @@ begin
 end
 
 //	Set bit 9 to swap serial ports...
-wire [9:0] switch = { 2'b10,art,sg4v6,cartint,CASS_REW_RECORD,mpi,1'b0};
+wire [9:0] switch = { 1'b0,UART_INPUT,art,sg4v6,rs_swap,CASS_REW_RECORD,mpi,1'b0};
 
 
 wire reset = RESET | status[0] | buttons[1];

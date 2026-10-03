@@ -88,6 +88,7 @@ HSYNC_N,
 VSYNC_N,
 HBLANKING,
 VBLANKING,
+VBLANK_PRIME,
 
 // RAM / Buffer
 RAM_ADDRESS,
@@ -124,12 +125,20 @@ HBORDER,
 VBORDER,
 HBORDER_INT,
 VBORDER_INT,
-art
+art,
+PIXEL_COUNT,
+LINE
 );
 
 input               MASTER_CLK;
-input               PIX_CLK;
+output              PIX_CLK;
+reg                 PIX_CLK;
 input               RESET_N;
+
+output		[10:0]   PIXEL_COUNT;
+reg		    [10:0]   PIXEL_COUNT;
+output      [9:0]   LINE;
+reg         [9:0]   LINE;
 
 output      [9:0]   COLOR;
 reg         [9:0]   COLOR;
@@ -138,6 +147,8 @@ reg                 HSYNC_N;
 output              VSYNC_N;
 output				HBLANKING;
 reg					HBLANKING;
+output				VBLANK_PRIME;
+reg					VBLANK_PRIME;
 output				VBLANKING;
 reg					VBLANKING;
 
@@ -169,7 +180,7 @@ input               PHASE;
 input               SWITCH;
 
 output      [10:0]  ROM_ADDRESS;
-input       [7:0]  ROM_DATA1;
+input       [7:0]   ROM_DATA1;
 output              HBORDER;
 output              VBORDER;
 output              HBORDER_INT;
@@ -180,10 +191,8 @@ reg                 VBORDER_INT;
 input		[1:0]	art;
 
 //reg                 HBLANKING;
-reg     [9:0]       LINE;
 reg     [3:0]       VLPR;
 //reg     [3:0]       COCO_VLPR;
-reg     [10:0]      PIXEL_COUNT;
 reg     [15:0]      CHAR_LATCH_0_TMP;
 reg     [15:0]      CHAR_LATCH_1_TMP;
 reg     [15:0]      CHAR_LATCH_2_TMP;
@@ -237,7 +246,7 @@ wire    [8:0]       BUF_ADD_BASE;
 //reg   [353:0]       VSYNC_DELAY;
 //reg                 VBLANKING;
 //wire    [3:0]       SG_VLPR;
-reg     [139:0]     VSYNC_DELAY;
+//reg     [139:0]     VSYNC_DELAY;
 reg                 VBORDER;
 reg                 VSYNC_FLAG;
 reg                 HBORDER_DELAY;
@@ -1504,22 +1513,41 @@ assign PIXEL_X =
 ({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101001)                                              ?   {6'h00,CHAR_LATCH_0[9:8]}:
 
 //4 Color 512/640 = 640/4 = 160
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00010101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00100101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00110101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01000101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01010101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01100101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01110101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10000101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10010101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10100101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10110101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11000101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11010101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11100101101)                                              ?   {6'h00,CHAR_LATCH_0[9:8]}:
-({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101101)                                              ?   {6'h00,CHAR_LATCH_1[9:8]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00010101101)                                              ?   {6'h00,CHAR_LATCH_0[7:6]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00100101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00110101101)                                              ?   {6'h00,CHAR_LATCH_0[5:4]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01000101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01010101101)                                              ?   {6'h00,CHAR_LATCH_0[3:2]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01100101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01110101101)                                              ?   {6'h00,CHAR_LATCH_0[1:0]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10000101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10010101101)                                              ?   {6'h00,CHAR_LATCH_0[15:14]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10100101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10110101101)                                              ?   {6'h00,CHAR_LATCH_0[13:12]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11000101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11010101101)                                              ?   {6'h00,CHAR_LATCH_0[11:10]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11100101101)                                              ?   {6'h00,CHAR_LATCH_0[9:8]}:
+//({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101101)                                              ?   {6'h00,CHAR_LATCH_1[9:8]}:
+
+// Update by G. Becker on 4/18/26 to fix HSCREEN 4 mode (640 x 192) 4 color mode.
+
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000101101)                                            ?   {6'h00,CHAR_LATCH_0[7:6]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00010101101)                                            ?   {6'h00,CHAR_LATCH_0[5:4]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00100101101)                                            ?   {6'h00,CHAR_LATCH_0[3:2]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00110101101)                                            ?   {6'h00,CHAR_LATCH_0[1:0]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01000101101)                                            ?   {6'h00,CHAR_LATCH_0[15:14]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01010101101)                                            ?   {6'h00,CHAR_LATCH_0[13:12]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01100101101)                                            ?   {6'h00,CHAR_LATCH_0[11:10]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b01110101101)                                            ?   {6'h00,CHAR_LATCH_0[9:8]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10000101101)                                            ?   {6'h00,CHAR_LATCH_1[7:6]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10010101101)                                            ?   {6'h00,CHAR_LATCH_1[5:4]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10100101101)                                            ?   {6'h00,CHAR_LATCH_1[3:2]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b10110101101)                                            ?   {6'h00,CHAR_LATCH_1[1:0]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11000101101)                                            ?   {6'h00,CHAR_LATCH_1[15:14]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11010101101)                                            ?   {6'h00,CHAR_LATCH_1[13:12]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11100101101)                                            ?   {6'h00,CHAR_LATCH_1[11:10]}:
+({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b11110101101)                                            ?   {6'h00,CHAR_LATCH_1[9:8]}:
 
 //16 Color 32/40 = 40/2 = 20
 ({PIXEL_COUNT[3:0],COCO1,BP,HRES[3:1],CRES} == 11'b00000100010)                                              ?   {4'h0,CHAR_LATCH_0[7:4]}:
@@ -1785,6 +1813,15 @@ HBlanking has to be 1 for border
 HBORDER   has to be 1 for main display
 HBlanking has to be 0 for main display
 ******************************************************************************/
+always @ (posedge MASTER_CLK)
+begin
+	reg	[1:0]	div;
+	PIX_CLK <= 1'b0;
+	div <= div + 1'b1;
+	if ((div == 2'd1) || (div == 2'd2))
+		PIX_CLK <= 1'b1;
+end
+
 always @ (negedge MASTER_CLK)
     if(PIX_CLK == 1'b0 && PIX_CLK_DELAY == 1'b1)
     begin
@@ -1820,6 +1857,10 @@ always @ (negedge MASTER_CLK)
         11'd724:                            // End of right border 720 + 44 - 1 (+ 64) start of back porch
         begin
             HBORDER <= 1'b0;                // 736 - 28
+			if (LINE == 9'd262)
+				VBLANK_PRIME <= 1'b0;
+			if (LINE == 9'd5)
+				VBLANK_PRIME <= 1'b1;
             PIXEL_COUNT <= 11'd725;
         end
 
@@ -1927,12 +1968,14 @@ assign SG6 = VLPR[3:2];
 * Generate clock for VSYNC_N by
 * Delaying VSYNC_FLAG by 137 pixels
 *************************************/
-assign VSYNC_N = VSYNC_DELAY[137];
-always @ (negedge MASTER_CLK)
-    if(PIX_CLK == 1'b0 && PIX_CLK_DELAY == 1'b1)
-    begin
-        VSYNC_DELAY <= {VSYNC_DELAY[138:0], VSYNC_FLAG};
-    end
+//assign VSYNC_N = VSYNC_DELAY[137];
+//always @ (negedge MASTER_CLK)
+//    if(PIX_CLK == 1'b0 && PIX_CLK_DELAY == 1'b1)
+//    begin
+//        VSYNC_DELAY <= {VSYNC_DELAY[138:0], VSYNC_FLAG};
+//    end
+
+assign VSYNC_N = VSYNC_FLAG;
 
 /*****************************************************************************
 * Keeps track of how many lines are in each row.
